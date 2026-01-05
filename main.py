@@ -106,7 +106,12 @@ def make_timelapse(date_folder):
     print(f"[+] Timelapse saved: {output_path}")
 
 def auto_make_missing_timelapses():
+    today = datetime.now().strftime("%Y-%m-%d")
+
     for date_folder in os.listdir(SCREENSHOT_DIR):
+        if date_folder == today:
+            continue  # skip today's screenshots
+
         screenshot_path = os.path.join(SCREENSHOT_DIR, date_folder)
         if not os.path.isdir(screenshot_path):
             continue
@@ -118,11 +123,13 @@ def auto_make_missing_timelapses():
         if os.path.exists(expected_video):
             continue
 
-        screenshots = [f for f in os.listdir(screenshot_path) if f.endswith(".jpg")]
+        screenshots = [
+            f for f in os.listdir(screenshot_path) if f.endswith(".jpg")
+        ]
         if screenshots:
             print(f"[AUTO] Missing timelapse for {date_folder}, creating...")
             make_timelapse(date_folder)
-
+            
 # === Tray ===
 
 def open_today_folder():
