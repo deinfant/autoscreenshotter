@@ -83,41 +83,45 @@ def hotkey_listener():
 
 def make_timelapse(date_folder):
     screenshot_folder = os.path.join(SCREENSHOT_DIR, date_folder)
-    timelapse_folder = os.path.join(TIMELAPSE_DIR, date_folder)
-    os.makedirs(timelapse_folder, exist_ok=True)
-
     images = sorted(f for f in os.listdir(screenshot_folder) if f.endswith(".jpg"))
     if not images:
+        print(f"[!] No screenshots found for {date_folder}")
         return
-
     first = cv2.imread(os.path.join(screenshot_folder, images[0]))
-    h, w, _ = first.shape
+    height, width, _ = first.shape
+    output_path = os.path.join(
+        TIMELAPSE_DIR,
+        f"timelapse_{date_folder}.mp4"
+    )
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 
-    output = os.path.join(timelapse_folder, f"timelapse_{date_folder}.mp4")
-    out = cv2.VideoWriter(output, cv2.VideoWriter_fourcc(*"mp4v"), FPS, (w, h))
-
+    print(f"[•] Creating timelapse for {date_folder} ({len(images)} frames)")
     for img in images:
         frame = cv2.imread(os.path.join(screenshot_folder, img))
         if frame is not None:
             out.write(frame)
 
     out.release()
-    print(f"[+] Timelapse saved: {output}")
+    print(f"[+] Timelapse saved: {output_path}")
 
 def auto_make_missing_timelapses():
     for date_folder in os.listdir(SCREENSHOT_DIR):
         screenshot_path = os.path.join(SCREENSHOT_DIR, date_folder)
-        timelapse_path = os.path.join(TIMELAPSE_DIR, date_folder)
-
         if not os.path.isdir(screenshot_path):
             continue
 
-        if os.path.exists(timelapse_path) and any(
-            f.endswith(".mp4") for f in os.listdir(timelapse_path)
-        ):
+        expected_video = os.path.join(
+            TIMELAPSE_DIR, f"timelapse_{date_folder}.mp4"
+        )
+
+        if os.path.exists(expected_video):
             continue
 
-        make_timelapse(date_folder)
+        screenshots = [f for f in os.listdir(screenshot_path) if f.endswith(".jpg")]
+        if screenshots:
+            print(f"[AUTO] Missing timelapse for {date_folder}, creating...")
+            make_timelapse(date_folder)
 
 # === Tray ===
 
