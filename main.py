@@ -53,7 +53,13 @@ def get_image_hash(image):
 def take_screenshot():
     global last_screenshot_hash
 
-    screenshot = pyautogui.screenshot().convert("RGB")
+    try:
+        # Attempt the screenshot
+        screenshot = pyautogui.screenshot().convert("RGB")
+    except Exception as e:
+        print(f"Screenshot failed (Screen likely locked or off): {e}")
+        return
+
     current_hash = get_image_hash(screenshot)
 
     if current_hash == last_screenshot_hash:
